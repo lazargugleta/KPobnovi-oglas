@@ -1,14 +1,12 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from credentials import email, password
-from bs4 import BeautifulSoup
 from selenium.webdriver.support.ui import WebDriverWait
 from time import sleep
 import glob
-import regex as re
+import os
 
 DRIVER_PATH = '/home/veloce/Downloads/KPobnovi-oglas/chromedriver'
 from webdriver_manager.chrome import ChromeDriverManager
@@ -49,9 +47,9 @@ def login():
         print(e)
         driver.quit()
 
-def postavi_oglas(naslov, cena, opis, valuta, kategorija, grad, stanje, fiksno = False, zamena = False):
+def postavi_oglas(naslov, kategorija, grad, stanje, fiksno = False, zamena = False):
     driver.get("https://novi.kupujemprodajem.com/postavljanje-oglasa?action=new")
-    sleep(3)
+    sleep(5)
     # ODABIR KATEGORIJE
     # TODO: Custom kategorija
     driver.find_element(By.ID, "groupSuggestText").send_keys(naslov)
@@ -69,10 +67,16 @@ def postavi_oglas(naslov, cena, opis, valuta, kategorija, grad, stanje, fiksno =
     for filename in sorted(glob.iglob(root_dir + naslov + '/*.jpg', recursive=False)):
         slike.append(filename)
     slike_upload.send_keys('\n'.join(slike))
-    
+    # cena_valuta = glob.iglob(root_dir + naslov + '/cena.txt', recursive=False)
+    cena_valuta_text = open(root_dir + naslov + '/cena.txt', 'r').read().split(' ')
+    cena = cena_valuta_text[0]
+    valuta = cena_valuta_text[1].strip()
     driver.find_element(By.ID, "price").send_keys(cena)
     currency = driver.find_elements(By.NAME, "currency")
+    print(valuta == "din")
+    print(valuta)
     if valuta == "din":
+        print("uso")
         currency[0].click()
     elif valuta == "eur":
         currency[1].click()
@@ -89,11 +93,15 @@ def postavi_oglas(naslov, cena, opis, valuta, kategorija, grad, stanje, fiksno =
     elif stanje == 4: # OŠTEĆENO
         buttons[3].click()
     sleep(1)
+
+    # OPIS
     driver.switch_to.frame(driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div/div/div/form/div[2]/div/div[2]/div[2]/section/section[1]/div/section[3]/section[5]/section/div/div/div[1]/div[1]/div[1]/iframe"))
+    opis_text = open(root_dir + naslov + '/opis.txt', 'r').read()
     opis_textarea = driver.find_element(By.XPATH, '/html/body/p')
     opis_textarea.click()
     opis_textarea.clear()
-    opis_textarea.send_keys(opis)
+
+    opis_textarea.send_keys(opis_text)
     sleep(1)
     driver.switch_to.default_content()
     sleep(5)
@@ -114,15 +122,13 @@ def postavi_oglas(naslov, cena, opis, valuta, kategorija, grad, stanje, fiksno =
 
     # Postavite oglas
     driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div/div/div/form/div[2]/div/div[4]/div[2]/section/div/section/div/button[2]").click()
-    sleep(3)
+    sleep(5)
 
-
-
+naslovi = os.listdir('/home/veloce/Documents/KP')
+# TODO: Dodati citanje iz baze / csv file-a za naslov, opis i cenu
 
 if login() == True:
-    postavi_oglas("Casio sat", "40", "Test test test test test opisa", "eur", "kategorija", "grad" , 1, True)
-    postavi_oglas("Casio sat", "40", "Test test test test test opisa", "eur", "kategorija", "grad" , 1, True)
-    postavi_oglas("Casio sat", "40", "Test test test test test opisa", "eur", "kategorija", "grad" , 1, True)
-    postavi_oglas("Casio sat", "40", "Test test test test test opisa", "eur", "kategorija", "grad" , 1, True)
-    postavi_oglas("Casio sat", "40", "Test test test test test opisa", "eur", "kategorija", "grad" , 1, True)
-    postavi_oglas("Casio sat", "40", "Test test test test test opisa", "eur", "kategorija", "grad" , 1, True)
+    for naslov in naslovi:
+        if naslov == "ARHIVA":
+            continue
+        postavi_oglas(naslov, "kategorija", "grad" , 1, True)
