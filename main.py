@@ -14,7 +14,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
 root_dir = '/home/veloce/Documents/KP/'
-# wait = WebDriverWait(browser, 10)
 
 
 def login():
@@ -25,22 +24,15 @@ def login():
         email_input.send_keys(email)
         password_input = driver.find_element(By.ID, "password")
         password_input.send_keys(password)
-        # sleep(3)
-        # while(True):
-        #     try:
-        #         login_button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div[2]/div/section/div[2]/form/button")
-        #         login_button.click()
-        #         break
-        #     except:
-        #         sleep(1)
         try:
             WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div[2]/div/section/div[2]/form/button"))).click()
-        except:
             driver.find_element(By.XPATH, "//button[contains(text(), 'Ulogujte se')]").click()
+        except:
             print("Nije uspelo")
-            pass
+            # TODO: Napraviti bolje stabilnije logovanje
+            exit()
         sleep(1.5)
-        print("Logged in")
+        print("Ulogovan")
         return 1
 
     except Exception as e:
@@ -51,6 +43,7 @@ def postavi_oglas(naslov, kategorija, grad, stanje, fiksno = False, zamena = Fal
     driver.get("https://novi.kupujemprodajem.com/postavljanje-oglasa?action=new")
     sleep(5)
     # ODABIR KATEGORIJE
+    # funkcionise na osnovu naslova oglasa i bira prvu kategoriju koju KP ponudi
     # TODO: Custom kategorija
     driver.find_element(By.ID, "groupSuggestText").send_keys(naslov)
     sleep(0.5)
@@ -73,10 +66,7 @@ def postavi_oglas(naslov, kategorija, grad, stanje, fiksno = False, zamena = Fal
     valuta = cena_valuta_text[1].strip()
     driver.find_element(By.ID, "price").send_keys(cena)
     currency = driver.find_elements(By.NAME, "currency")
-    print(valuta == "din")
-    print(valuta)
     if valuta == "din":
-        print("uso")
         currency[0].click()
     elif valuta == "eur":
         currency[1].click()
